@@ -72,9 +72,9 @@ const Services: React.FC = () => {
             <div className="animate-pulse">_ system.init()</div>
             <div className="text-blue-400 mt-2">Connecting to Devzi Engine...</div>
             <div className="text-white/40 mt-1">Found 4 core modules</div>
-            <div className="mt-2">> Deploying microservices [OK]</div>
-            <div className="mt-1">> Establishing handshake [OK]</div>
-            <div className="mt-1">> Compiling assets [OK]</div>
+            <div className="mt-2">&gt; Deploying microservices [OK]</div>
+            <div className="mt-1">&gt; Establishing handshake [OK]</div>
+            <div className="mt-1">&gt; Compiling assets [OK]</div>
           </div>
         </BentoCard>
 
@@ -86,13 +86,13 @@ const Services: React.FC = () => {
           className="md:col-span-1 md:row-span-2"
         >
           <div className="relative h-full flex items-center justify-center">
-             <motion.div
-               animate={{ rotate: 360 }}
-               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-               className="w-40 h-40 border border-[#F97316]/20 rounded-full flex items-center justify-center"
-             >
-                <div className="w-20 h-20 bg-gradient-to-tr from-[#3B82F6] to-[#F97316] rounded-full blur-xl opacity-40 animate-pulse" />
-             </motion.div>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              className="w-40 h-40 border border-[#F97316]/20 rounded-full flex items-center justify-center"
+            >
+              <div className="w-20 h-20 bg-gradient-to-tr from-[#3B82F6] to-[#F97316] rounded-full blur-xl opacity-40 animate-pulse" />
+            </motion.div>
           </div>
         </BentoCard>
 
