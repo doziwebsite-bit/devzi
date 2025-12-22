@@ -1,0 +1,8 @@
+{
+  "name": "Devzi - Digital Alchemy Agency",
+  "description": "A high-end, immersive digital agency website with cutting-edge animations, horizontal scrolling, and interactive 3D elements.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
