@@ -19,20 +19,12 @@ const Home: React.FC = () => {
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-[#3B82F6]/20 to-[#F97316]/20 blur-[120px]"
-          animate={{
-            x: [0, 100, -100, 0],
-            y: [0, -50, 50, 0],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
       </div>
 
       <div className="relative z-10 max-w-5xl">
-        <div className="text-[14vw] md:text-[10vw] font-black leading-[0.85] tracking-tighter">
+        <div className="text-[14vw] md:text-[10vw] font-black leading-[1.1] tracking-tighter">
           <motion.h1
-            className="block overflow-hidden"
+            className="block overflow-hidden pb-[0.2em]"
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
@@ -40,7 +32,7 @@ const Home: React.FC = () => {
             Digital
           </motion.h1>
           <motion.div
-            className="block"
+            className="block overflow-hidden leading-normal pb-4 -mt-[0.6em]"
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
@@ -65,15 +57,15 @@ const Home: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
         >
-          <button 
+          <button
             onClick={() => navigate('/projects')}
             className="group flex items-center gap-4 bg-white text-black px-10 py-4 rounded-full font-bold text-xs tracking-[0.2em] uppercase hover:bg-[#3B82F6] hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-white/5"
           >
             EXPLORE WORK
             <ArrowDownRight className="w-4 h-4 group-hover:rotate-45 transition-transform" />
           </button>
-          
-          <button 
+
+          <button
             onClick={() => navigate('/pricing')}
             className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 hover:text-white transition-colors flex items-center gap-2"
           >
@@ -101,7 +93,7 @@ const Home: React.FC = () => {
           {/* Duplicate for infinite effect */}
           {['PRICING', 'REACT', 'NODE.JS', 'DASHBOARD', 'AI ARCHITECTURE', 'TRANSFORMATION', 'TAILWIND', 'GLOBAL OPS'].map((tech, i) => (
             <span
-              key={i+100}
+              key={i + 100}
               className="text-4xl md:text-6xl font-black text-white/5 hover:text-white transition-colors cursor-pointer"
               onClick={() => navigate(`/${tech.toLowerCase().replace(' ', '-')}`)}
             >

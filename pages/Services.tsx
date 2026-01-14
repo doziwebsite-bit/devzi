@@ -1,52 +1,8 @@
 
 import React, { useRef, useState } from 'react';
-import { motion, useMotionTemplate, useMotionValue } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Code2, Palette, BrainCircuit, Globe2, Sparkles, Terminal } from 'lucide-react';
-
-const BentoCard: React.FC<{
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  className?: string;
-  children?: React.ReactNode;
-}> = ({ title, description, icon, className = "", children }) => {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  }
-
-  return (
-    <motion.div
-      onMouseMove={handleMouseMove}
-      className={`group relative overflow-hidden rounded-3xl bg-[#0A0A0A] border border-white/5 p-8 ${className}`}
-    >
-      <motion.div
-        className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition duration-300 group-hover:opacity-100"
-        style={{
-          background: useMotionTemplate`
-            radial-gradient(
-              400px circle at ${mouseX}px ${mouseY}px,
-              rgba(59, 130, 246, 0.15),
-              transparent 80%
-            )
-          `,
-        }}
-      />
-      <div className="relative z-10 h-full flex flex-col">
-        <div className="p-3 w-fit rounded-xl bg-white/5 text-[#3B82F6] mb-6">
-          {icon}
-        </div>
-        <h3 className="text-2xl font-bold mb-3">{title}</h3>
-        <p className="text-white/40 text-sm leading-relaxed mb-6">{description}</p>
-        <div className="mt-auto">{children}</div>
-      </div>
-    </motion.div>
-  );
-};
+import BentoCard from '../components/BentoCard';
 
 const Services: React.FC = () => {
   return (

@@ -12,6 +12,8 @@ import Process from './pages/Process';
 import Contact from './pages/Contact';
 import Pricing from './pages/Pricing';
 import Dashboard from './pages/Dashboard';
+import Architect from './pages/Architect';
+import Login from './pages/Login';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -32,19 +34,28 @@ const AppContent: React.FC = () => {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/architect" element={<Architect />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </main>
-      
-      {/* Global Contact Section as Footer (only show if not on contact page) */}
-      {location.pathname !== '/contact' && <FooterContact />}
+
+      {/* Global Contact Section as Footer (only show if not on contact, architect, or login page) */}
+      {location.pathname !== '/contact' && location.pathname !== '/architect' && location.pathname !== '/login' && <FooterContact />}
     </div>
   );
 };
 
+// Context
+import { AuthProvider } from './context/AuthContext';
+
+// ... (imports remain)
+
 const App: React.FC = () => {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 };
