@@ -14,7 +14,7 @@ Devzi is a high-end digital agency platform productized to offer streamlined web
 -   **Routing**: React Router DOM v7
 -   **Authentication**: Supabase Auth (Google OAuth)
 -   **Database**: Supabase (PostgreSQL)
--   **AI**: Google Gemini Pro
+-   **AI**: Google Gemini 2.5 Flash
 -   **Styling**: Tailwind CSS
 -   **Animations**: Framer Motion
 -   **Icons**: Lucide React

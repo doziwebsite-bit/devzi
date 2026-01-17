@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, Send, Cpu, Download, ArrowRight, Check } from 'lucide-react';
+import { Terminal, Send, Cpu, Download, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -20,6 +19,7 @@ const Architect: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [blueprint, setBlueprint] = useState<any>(null); // Store parsed blueprint
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const hasInitialized = useRef(false);
     const navigate = useNavigate();
 
     // Auto-scroll
@@ -29,6 +29,9 @@ const Architect: React.FC = () => {
 
     // Initial Sequence
     useEffect(() => {
+        if (hasInitialized.current) return;
+        hasInitialized.current = true;
+
         if (step === 0) {
             const sequence = async () => {
                 await new Promise(r => setTimeout(r, 800));
@@ -43,39 +46,90 @@ const Architect: React.FC = () => {
             };
             sequence();
         }
-    }, []);
+    }, [step]);
 
     const addMessage = (role: 'system' | 'ai' | 'user', content: string | React.ReactNode) => {
         setMessages(prev => [...prev, { role, content }]);
     };
 
+    const fallbackLogic = (userMsg: string) => {
+        let response = "Compris. Projet ambitieux.";
+        let suggestions = (
+            <div className="flex flex-col gap-2 mt-2">
+                <p>Pour ce type de projet, je recommande l'architecture suivante :</p>
+                <ul className="list-none space-y-1 text-sm font-mono text-green-400">
+                    <li>[+] Authentification OAuth2 (Google/Apple)</li>
+                    <li>[+] Base de données relationnelle temps réel (Supabase)</li>
+                </ul>
+            </div>
+        );
+        addMessage('ai', <div>{response}{suggestions}</div>);
+    };
+
     const generateAIResponse = async (userPrompt: string) => {
         if (!GEMINI_API_KEY) {
-            addMessage('system', 'ERROR: VITE_GEMINI_API_KEY is missing. Falling back to simulation logic.');
+            addMessage('system', 'ERROR: VITE_GEMINI_API_KEY is missing.');
             return fallbackLogic(userPrompt);
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-            // Context injection
             const systemPrompt = `
                 You are the "Devzi Architect", an expert software consultant. 
-                Your goal is to briefly analyze the user's project idea and suggest a technical stack.
-                Keep your response concise (max 3 sentences) and professional.
-                Also, output a "suggestions" list in your response text if possible.
+                Your goal is to understand the user's project to build a technical blueprint.
+                
+                INSTRUCTIONS:
+                1. If the user's description is vague, ASK CLARIFYING QUESTIONS (max 2 questions at a time).
+                2. Be concise, professional, and "hacker-chic" in tone.
+                3. If you feel you have enough info (Stack, Scale, Features), clearly ask: "Shall I generate the blueprint now?"
+                4. Output FORMAT: JSON ONLY.
+                
+                {
+                    "type": "question" | "ready",
+                    "content": "Your question text here...",
+                    "suggestions": ["Optional suggestion 1", "Optional suggestion 2"]
+                }
             `;
 
-            const result = await model.generateContent(`${systemPrompt}\nUser says: ${userPrompt}`);
+            const result = await model.generateContent(`${systemPrompt}\nLAST USER MESSAGE: ${userPrompt}`);
             const response = result.response;
-            const text = response.text();
+            let text = response.text();
 
-            addMessage('ai', text);
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
-        } catch (error) {
-            console.error(error);
-            addMessage('system', 'CONNECTION ERROR. Falling back to local systems.');
-            fallbackLogic(userPrompt);
+            try {
+                const data = JSON.parse(text);
+
+                // Render the response
+                const formattedContent = (
+                    <div>
+                        <p className="mb-2">{data.content}</p>
+                        {data.suggestions && data.suggestions.length > 0 && (
+                            <ul className="list-none space-y-1 text-sm font-mono text-green-400 mt-2">
+                                {data.suggestions.map((item: string, idx: number) => (
+                                    <li key={idx}>[?] {item}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {data.type === 'ready' && (
+                            <p className="text-xs text-blue-500 mt-2 font-bold animate-pulse">
+                                [SYSTEM] BLUEPRINT READY. TYPE 'GO' TO COMPILE.
+                            </p>
+                        )}
+                    </div>
+                );
+                addMessage('ai', formattedContent);
+
+            } catch (e) {
+                // Fallback (if AI answers in text)
+                addMessage('ai', text);
+            }
+
+        } catch (error: any) {
+            console.error("Gemini API Error:", error);
+            const detailedError = error instanceof Error ? error.message : String(error);
+            addMessage('system', `ERROR DETAILS: ${detailedError}`);
         }
     };
 
@@ -92,30 +146,46 @@ const Architect: React.FC = () => {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const prompt = `
-                Analyze this project description: "${userPrompt}".
-                Output ONLY a JSON object with the following fields: 
-                stack (string), complexity (string), timeline (string), price (string range in EUR).
-                Do not include markdown formatting like \`\`\`json.
+                You are a senior technical architect.
+                Analyze the project discussed so far (implied by this summary request: "${userPrompt}").
+                
+                Create a detailed technical blueprint.
+                
+                OUTPUT MUST BE RAW JSON (no markdown, no backticks):
+                {
+                    "stack": "e.g. Next.js, Supabase, Stripe",
+                    "complexity": "Low/Medium/High",
+                    "timeline": "e.g. 4-6 Weeks",
+                    "price": "e.g. €5,000 - €8,000"
+                }
             `;
+
             const result = await model.generateContent(prompt);
-            const text = result.response.text().replace(/`/g, '').replace('json', '').trim();
+            const response = result.response;
+            let text = response.text();
+
+            // Robust Cleanup
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
             const data = JSON.parse(text);
             setBlueprint(data);
             setStep(4);
-        } catch (e) {
-            console.error("Failed to parse blueprint", e);
+        } catch (e: any) {
+            console.error("Blueprint Error", e);
+            const err = e instanceof Error ? e.message : String(e);
+            addMessage('system', `BLUEPRINT FAILED: ${err}`);
+
             setBlueprint({
-                stack: "Custom Stack",
-                complexity: "High",
-                timeline: "Custom",
-                price: "Contact for Quote"
+                stack: "Error Generation",
+                complexity: "Unknown",
+                timeline: "Unknown",
+                price: "Contact Support"
             });
             setStep(4);
         }
     }
-
 
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -123,36 +193,24 @@ const Architect: React.FC = () => {
         setInput('');
         addMessage('user', userMsg);
 
+        // Special commands
+        if (userMsg.toLowerCase() === 'go' || userMsg.toLowerCase().includes('blueprint')) {
+            setStep(3);
+            addMessage('system', 'INITIATING BLUEPRINT COMPILATION SEQUENCE...');
+            await generateBlueprint(userMsg);
+            return;
+        }
+
+        // Discovery Phase Loop
         if (step === 1) {
-            setStep(2);
-            addMessage('system', 'ANALYZING SEMANTIC VECTORS...');
             await generateAIResponse(userMsg);
-
-            // Prompt for next step
-            await new Promise(r => setTimeout(r, 1000));
-            //  addMessage('ai', "Voulez-vous que je génère le Blueprint technique final pour ce projet ?");
-
         } else if (step === 2) {
+            // Should not reach here typically if flow is correct, but effectively triggers blueprint
             setStep(3);
             addMessage('system', 'COMPILING BLUEPRINT...');
-            await generateBlueprint(userMsg); // Using previous context would be better but simple passing userMsg here for V1
+            await generateBlueprint(userMsg);
         }
     };
-
-    // Fallback if no API key
-    const fallbackLogic = (userMsg: string) => {
-        let response = "Compris. Projet ambitieux.";
-        let suggestions = (
-            <div className="flex flex-col gap-2 mt-2">
-                <p>Pour ce type de projet, je recommande l'architecture suivante :</p>
-                <ul className="list-none space-y-1 text-sm font-mono text-green-400">
-                    <li>[+] Authentification OAuth2 (Google/Apple)</li>
-                    <li>[+] Base de données relationnelle temps réel (Supabase)</li>
-                </ul>
-            </div>
-        );
-        addMessage('ai', <div>{response}{suggestions}</div>);
-    }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') handleSend();
@@ -160,7 +218,6 @@ const Architect: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-black pt-24 pb-10 px-4 md:px-0 font-mono text-sm md:text-base flex flex-col items-center">
-
             {/* Container */}
             <div className="w-full max-w-3xl bg-[#050505] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[80vh]">
 
